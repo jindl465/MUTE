@@ -1,0 +1,18 @@
+# Generated outputs and caches
+outputs/
+out/
+.cache/
+__pycache__/
+*.py[cod]
+
+# Local checkpoints are intentionally excluded from the submission archive.
+pretrained_models/*
+!pretrained_models/README.md
+
+# Evaluation checkpoints can be mounted locally when needed.
+eval/syncnet/data/*.model
+eval/syncnet/detectors/s3fd/weights/*.pth
+
+# Local experiment folders
+smoke_outputs/
+smoke_dataset/

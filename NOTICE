@@ -1,0 +1,10 @@
+This code package contains the MUTE attack implementation and evaluation
+scripts prepared for paper submission.
+
+Parts of the runtime code are adapted from the Hallo project, originally
+released under the MIT License by Fusion Lab: Generative Vision Lab of Fudan
+University. The original copyright notice is preserved in LICENSE.
+
+Model checkpoints, datasets, and generated outputs are not included in this
+code-only package. Their use is governed by the terms of their respective
+sources.
