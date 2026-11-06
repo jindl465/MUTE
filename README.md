@@ -5,6 +5,16 @@ Official PyTorch implementation of **MUTE**, accepted to **NeurIPS 2026**.
 **Donghyun Kim\*, Jin Hong\*, Seungmin Kim\*, Dain Kim, Junseok Kwon, Daeseon Choi**
 <br>\* Equal contribution
 
+<p>
+  <a href="https://jindl465.github.io/website/projects/MUTE/"><img src="https://img.shields.io/badge/Project-Page-1772d0?style=flat-square" alt="Project Page"></a>
+  <a href="https://jindl465.github.io/website/projects/MUTE/#demos"><img src="https://img.shields.io/badge/Video-Demos-222222?style=flat-square" alt="Video Demos"></a>
+  <a href="https://jindl465.github.io/website/projects/MUTE/assets/paper.pdf"><img src="https://img.shields.io/badge/Paper-PDF-b31b1b?style=flat-square" alt="Paper"></a>
+  <img src="https://img.shields.io/badge/NeurIPS-2026-6a3fa0?style=flat-square" alt="NeurIPS 2026">
+</p>
+
+🎬 **Project page:** https://jindl465.github.io/website/projects/MUTE/
+<br>Side-by-side video comparisons with the baselines, black-box transfer, robustness to purification, combination with image protection, and an interactive version of the user study.
+
 ## Overview
 
 <p align="center">
@@ -258,7 +268,9 @@ paper (WER, STOI, and PESQ) are not included in this repository.
 
 ## Results
 
-Main results of MUTE as reported in Table 1 of the paper.
+Main results of MUTE as reported in Table 1 of the paper. Full comparison
+tables and generated videos are on the
+[project page](https://jindl465.github.io/website/projects/MUTE/).
 
 | Dataset | WER ↓ | STOI ↑ / PESQ ↑ | SyncNet ↓ | M-LMD ↑ | FID ↑ / FVD ↑ | E-FID ↑ |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
