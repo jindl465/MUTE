@@ -12,7 +12,7 @@ Official PyTorch implementation of **MUTE**, accepted to **NeurIPS 2026**.
   <img src="https://img.shields.io/badge/NeurIPS-2026-6a3fa0?style=flat-square" alt="NeurIPS 2026">
 </p>
 
-🎬 **Project page:** https://jindl465.github.io/website/projects/MUTE/
+🎬 **Project page:** https://jindl465.github.io/website/MUTE/
 <br>Side-by-side video comparisons with the baselines, black-box transfer, robustness to purification, combination with image protection, and an interactive version of the user study.
 
 ## Overview
