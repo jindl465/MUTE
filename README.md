@@ -7,7 +7,6 @@ Official PyTorch implementation of **MUTE**, accepted to **NeurIPS 2026**.
 
 <p>
   <a href="https://jindl465.github.io/website/projects/MUTE/"><img src="https://img.shields.io/badge/Project-Page-1772d0?style=flat-square" alt="Project Page"></a>
-  <a href="https://jindl465.github.io/website/projects/MUTE/#demos"><img src="https://img.shields.io/badge/Video-Demos-222222?style=flat-square" alt="Video Demos"></a>
   <a href="https://arxiv.org/abs/2611.11989"><img src="https://img.shields.io/badge/Paper-PDF-b31b1b?style=flat-square" alt="Paper"></a>
   <img src="https://img.shields.io/badge/NeurIPS-2026-6a3fa0?style=flat-square" alt="NeurIPS 2026">
 </p>
