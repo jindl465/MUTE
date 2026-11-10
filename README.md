@@ -6,7 +6,7 @@ Official PyTorch implementation of **MUTE**, accepted to **NeurIPS 2026**.
 <br>\* Equal contribution
 
 <p>
-  <a href="https://jindl465.github.io/website/projects/MUTE/"><img src="https://img.shields.io/badge/Project-Page-1772d0?style=flat-square" alt="Project Page"></a>
+  <a href="https://jindl465.github.io/website/MUTE/"><img src="https://img.shields.io/badge/Project-Page-1772d0?style=flat-square" alt="Project Page"></a>
   <a href="https://arxiv.org/abs/2611.11989"><img src="https://img.shields.io/badge/Paper-PDF-b31b1b?style=flat-square" alt="Paper"></a>
   <img src="https://img.shields.io/badge/NeurIPS-2026-6a3fa0?style=flat-square" alt="NeurIPS 2026">
 </p>
@@ -21,12 +21,26 @@ Official PyTorch implementation of **MUTE**, accepted to **NeurIPS 2026**.
 </p>
 
 MUTE protects speech from being exploited by audio-driven talking-head
-generators. It adds a small, L∞-bounded perturbation to the waveform so that a
-talking-head model driven by the protected audio no longer produces lip motion
-that follows the speech, while the audio itself stays close to the original.
-The perturbation is optimized with a two-phase PGD procedure against a frozen,
-pretrained [Hallo](https://github.com/fudan-generative-vision/hallo) model, so
-no training is involved.
+generators. It adds a small, L∞-bounded perturbation to the waveform that
+breaks the audio-visual alignment these models rely on, so that a talking-head
+model driven by the protected audio no longer produces lip motion that follows
+the speech, while the audio itself stays close to the original.
+
+MUTE uncouples the alignment at two levels:
+
+- **Alignment-level Disruption** perturbs the audio-visual cross-attention of
+  the talking-head model (`L_attn`).
+- **Representation-level Degradation** perturbs the temporal audio embeddings
+  (`L_emb`).
+
+The perturbation is constrained to the high-energy regions of the clean
+speech in the STFT domain (`L_stft`), which keeps it robust to
+post-processing, denoising-based purification, and adaptive attacks. It is
+optimized with a two-phase PGD procedure against a frozen, pretrained
+[Hallo](https://github.com/fudan-generative-vision/hallo) model, so no training
+is involved. The protection transfers to black-box talking-head models (Hallo2,
+Audio2Head, SadTalker, and Ditto) and can be combined with image-based
+protections.
 
 ## Repository Structure
 
@@ -52,8 +66,9 @@ MUTE/
 
 ## Installation
 
-The code requires Python 3.10 or later and an NVIDIA GPU. `requirements.txt`
-pins PyTorch 2.2.2 built for CUDA 12.1.
+The code requires Python 3.10 or later and an NVIDIA GPU (the experiments in
+the paper were run on an RTX 4090). `requirements.txt` pins PyTorch 2.2.2 built
+for CUDA 12.1.
 
 ```bash
 git clone https://github.com/jindl465/MUTE.git
@@ -122,8 +137,16 @@ dataset/
 - The target attention distribution is computed once per speaker, from the
   first WAV file, and reused for the remaining files of that speaker.
 
-The paper reports results on TalkingHead-1KH and CelebV-HQ. The datasets are not
-redistributed here; please obtain them from their original sources.
+The paper reports results on two datasets:
+
+- **TalkingHead-1KH**: 50 samples from the preprocessed TalkingHead-1KH data
+  released by [Silencer](https://github.com/yuangan/silencer). Download it
+  through the link in the Silencer repository.
+- **CelebV-HQ**: 50 high-quality videos selected by CLIP-IQA score, with the
+  audio trimmed to 5-second segments.
+
+The datasets are not redistributed here; please obtain them from the sources
+above.
 
 ## Quick Start
 
@@ -144,7 +167,7 @@ is written to:
 ```text
 outputs/example/
   0002/
-    audio_emb_frame_l1+kl+stft_mask_cons_eps0.01_steps200_200_score/
+    audio_emb_frame_l1+kl+stft_mask_cons_eps0.004_steps200_200_score/
       audio_adv.wav
 ```
 
@@ -191,28 +214,6 @@ python protect/protect_audio.py \
   attack.output_path=/path/to/output \
   attack.min_timesteps=200
 ```
-
-### Losses and Optimization Settings
-
-| Loss | Role | Implementation |
-| --- | --- | --- |
-| `L_emb` | Pushes the frame-wise wav2vec 2.0 embeddings of the protected audio away from those of the clean audio (cosine similarity). | `protect/audio_loss.py` |
-| `L_attn` | Pulls the lip audio cross-attention map toward a target distribution built from the attention sensitivity (KL divergence). | `protect/audio_loss.py`, `protect/visualize_lip_attn.py` |
-| `L_stft` | Keeps the perturbation inside the time-frequency regions where the clean speech has energy (STFT-mask consistency). | `protect/protect_audio.py` |
-
-The default settings are defined as constants at the top of
-`protect/protect_audio.py`:
-
-| Setting | Constant | Value |
-| --- | --- | --- |
-| Perturbation budget (L∞, waveform amplitude) | `_EPSILON` | `0.01` |
-| PGD step size | `_ALPHA` | `0.0004` |
-| PGD iterations | `_STEPS` | `200` |
-| Phase split | `_PHASE_RATIO` | `0.9` |
-| Weight of `L_stft` (λ) | `_LOSS_WEIGHTS["stft_mask_cons"]` | `5.0` |
-
-The first 90% of the iterations minimize `L_emb + λ L_stft`, and the remaining
-iterations minimize `L_attn + λ L_stft`.
 
 ## Evaluation
 
@@ -267,16 +268,18 @@ paper (WER, STOI, and PESQ) are not included in this repository.
 
 ## Results
 
-Main results of MUTE as reported in Table 1 of the paper. Full comparison
+Main results of MUTE against Hallo (white-box), as reported in Table 1 of the
+paper. Values are mean ± standard deviation over three random seeds. Full comparison
 tables and generated videos are on the
-[project page](https://jindl465.github.io/website/projects/MUTE/).
+[project page](https://jindl465.github.io/website/MUTE/).
 
 | Dataset | WER ↓ | STOI ↑ / PESQ ↑ | SyncNet ↓ | M-LMD ↑ | FID ↑ / FVD ↑ | E-FID ↑ |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| TalkingHead-1KH | 13.300 | 0.885 / 1.945 | 1.027 | 1.730 | 3.889 / 2.530 | 5.901 |
-| CelebV-HQ | 17.940 | 0.890 / 1.944 | 1.682 | 1.751 | 2.701 / 1.796 | 4.766 |
+| TalkingHead-1KH | 11.681 ± 0.330 | 0.936 ± 0.001 / 2.522 ± 0.002 | 1.332 ± 0.012 | 1.627 ± 0.012 | 3.183 ± 0.036 / 2.363 ± 0.049 | 5.489 ± 0.087 |
+| CelebV-HQ | 10.467 ± 0.406 | 0.959 ± 0.000 / 2.940 ± 0.001 | 2.152 ± 0.040 | 1.693 ± 0.049 | 2.756 ± 0.048 / 1.790 ± 0.042 | 5.062 ± 0.183 |
 
-The arrows give the direction that is better for protection. WER, STOI, and PESQ
+The arrows give the direction that is better for protection. WER (measured with
+Whisper), STOI, and PESQ
 measure the protected audio, which should stay intelligible and close to the
 original. The remaining metrics measure the videos generated from the protected
 audio, where weaker synchronization and a larger distance from the reference
@@ -287,8 +290,10 @@ videos mean stronger protection.
 The model and preprocessing code under `hallo/` is adapted from
 [Hallo](https://github.com/fudan-generative-vision/hallo), and the SyncNet
 evaluation code under `eval/syncnet/` is adapted from
-[syncnet_python](https://github.com/joonson/syncnet_python). We thank the
-authors for releasing their code and models.
+[syncnet_python](https://github.com/joonson/syncnet_python). The
+TalkingHead-1KH samples used in our experiments come from the preprocessed data
+released by [Silencer](https://github.com/yuangan/silencer). We thank the
+authors for releasing their code, models, and data.
 
 ## License
 
@@ -305,6 +310,9 @@ If you find this work useful, please cite:
   title     = {MUTE: Multi-Level Alignment Uncoupling Against Talking-Head Exploitation for Voice Protection},
   author    = {Kim, Donghyun and Hong, Jin and Kim, Seungmin and Kim, Dain and Kwon, Junseok and Choi, Daeseon},
   booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
-  year      = {2026}
+  year      = {2026},
+  eprint    = {2611.11989},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.SD}
 }
 ```

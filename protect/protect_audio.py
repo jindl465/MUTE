@@ -47,10 +47,10 @@ from utils import cprint, mp
 matplotlib.use("Agg", force=True)
 
 
-_EPSILON = 0.01
-_ALPHA = 0.0004
+_EPSILON = 0.004
+_ALPHA = 0.0002
 _STEPS = 200
-_PHASE_RATIO = 0.9
+_PHASE_RATIO = 0.1
 _SCORE = "score"
 _TARGET_ATTN_SOFTMAX_ALPHA = 1.0
 _SAVE_GT_TARGET_ATTN_MAPS = os.environ.get("SAVE_GT_TARGET_ATTN_MAPS", "0") != "0"
@@ -528,8 +528,10 @@ def protect_audio(
         total_loss = None
         log_values = {}
 
-        run_emb_phase = use_emb and (not use_kl or step_idx < phase_split)
-        run_kl_phase = use_kl and (not run_emb_phase)
+        # Phase 1 (k <= rho*K): alignment level (L_attn).
+        # Phase 2 (k > rho*K): representation level (L_emb).
+        run_kl_phase = use_kl and (not use_emb or step_idx < phase_split)
+        run_emb_phase = use_emb and (not run_kl_phase)
 
         if run_emb_phase:
             emb_loss = forward_framewise_embedding_loss(
